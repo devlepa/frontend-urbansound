@@ -1,5 +1,6 @@
-import React, { useState } from "react";
 import { sendAudio } from "../api/predict";
+import { useState } from "react";
+
 
 export default function Recorder() {
   const [recording, setRecording] = useState(false);
