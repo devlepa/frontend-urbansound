@@ -1,18 +1,9 @@
-import { defineBackend } from '@aws-amplify/backend';
-import { restApi } from '@aws-amplify/backend';
-import { auth } from './auth/resource';
+import { defineBackend, defineFunction } from '@aws-amplify/backend';
 
-const backend = defineBackend({
-  auth,
-  api: restApi({
-    name: "urbansoundAPI",
-    routes: {
-      "/predict": {
-        method: "POST",
-        function: "./lambda/predict",
-      },
-    },
+export const backend = defineBackend({
+  predictfunction: defineFunction({
+    name: "predictfunction",
+    entry: "./amplify/lambda/predict/index.mjs",
+    runtime: "nodejs18.x",
   }),
 });
-
-export default backend;
