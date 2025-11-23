@@ -1,42 +1,72 @@
-import { sendAudio } from "../api/predict";
-import { useState } from "react";
+import React, { useState } from "react";
+import { classifyAudio } from "../api/predict";
 
+const Recorder: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [prediction, setPrediction] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-export default function Recorder() {
-  const [recording, setRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-
-  const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const recorder = new MediaRecorder(stream);
-    const chunks: Blob[] = [];
-
-    recorder.ondataavailable = (e) => {
-      chunks.push(e.data);
-    };
-
-    recorder.onstop = async () => {
-      const blob = new Blob(chunks, { type: "audio/wav" });
-      await sendAudio(blob);
-    };
-
-    recorder.start();
-    setMediaRecorder(recorder);
-    setRecording(true);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFile(e.target.files?.[0] || null);
+    setPrediction(null);
   };
 
-  const stopRecording = () => {
-    mediaRecorder?.stop();
-    setRecording(false);
+  const sendToAPI = async () => {
+    if (!file) return;
+    setLoading(true);
+
+    try {
+      const result = await classifyAudio(file);
+      setPrediction(result.prediction || JSON.stringify(result));
+    } catch (err) {
+      console.error(err);
+      setPrediction("Error calling prediction API");
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div>
-      {!recording ? (
-        <button onClick={startRecording}>🎙️ Grabar audio</button>
-      ) : (
-        <button onClick={stopRecording}>🛑 Detener</button>
+    <div style={{ padding: 20 }}>
+      <h2>Clasificador UrbanSound</h2>
+
+      <input
+        type="file"
+        accept="audio/*"
+        onChange={handleFileChange}
+      />
+
+      <button
+        style={{
+          marginTop: 15,
+          padding: "10px 20px",
+          background: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+          cursor: "pointer",
+        }}
+        onClick={sendToAPI}
+        disabled={!file || loading}
+      >
+        {loading ? "Clasificando..." : "Enviar audio"}
+      </button>
+
+      {prediction && (
+        <div
+          style={{
+            marginTop: 20,
+            padding: 15,
+            background: "#f0f0f0",
+            borderRadius: 6,
+          }}
+        >
+          <h3>Resultado</h3>
+          <p style={{ fontWeight: 600 }}>{prediction}</p>
+        </div>
       )}
     </div>
   );
-}
+};
+
+export default Recorder;

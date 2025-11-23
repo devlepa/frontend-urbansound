@@ -1,11 +1,13 @@
 import Recorder from "./components/Recorder";
+import "./App.css";
 
-export default function App() {
+function App() {
   return (
-    <main>
-      <h1>UrbanSound Audio Classifier</h1>
-      <p>Graba un audio y se enviará a la Lambda.</p>
+    <div style={{ maxWidth: 600, margin: "40px auto", textAlign: "center" }}>
+      <h1>UrbanSound Classifier</h1>
       <Recorder />
-    </main>
+    </div>
   );
 }
+
+export default App;
